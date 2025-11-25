@@ -42,7 +42,7 @@ class Trade(models.Model):
     trade_date = models.DateField(null=True, blank=True)
     value_date = models.DateField(null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True)
-    strike = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    strike = models.DecimalField(max_digits=30, decimal_places=6, null=True, blank=True)
     state = models.CharField(
         max_length=20, choices=TradeState.choices, default=TradeState.DRAFT
     )
