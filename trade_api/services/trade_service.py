@@ -13,7 +13,7 @@ valid_transitions = {
     TradeState.PENDING_APPROVAL: {
         Action.APPROVE: TradeState.APPROVED,
         Action.CANCEL: TradeState.CANCELLED,
-        Action.UPDATE: TradeState.PENDING_APPROVAL,
+        Action.UPDATE: TradeState.NEEDS_REAPPROVAL,
     },
     TradeState.NEEDS_REAPPROVAL: {
         Action.APPROVE: TradeState.APPROVED,
