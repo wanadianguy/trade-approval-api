@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 
 from ..models import Action, TradeLog, TradeState
@@ -22,6 +24,7 @@ valid_transitions = {
     TradeState.APPROVED: {
         Action.SEND: TradeState.SENT,
         Action.CANCEL: TradeState.CANCELLED,
+        Action.UPDATE: TradeState.NEEDS_REAPPROVAL,
     },
     TradeState.SENT: {
         Action.BOOK: TradeState.EXECUTED,
@@ -48,11 +51,24 @@ class TradeService:
         if updated_fields:
             for field, value in updated_fields.items():
                 if hasattr(trade, field):
-                    print(field)
+                    if field == "strike" and action != Action.BOOK:
+                        continue
                     setattr(trade, field, value)
 
         # Change the trade's state
         trade.state = valid_transitions[starting_state][action]
+
+        if action == Action.APPROVE:
+            trade.trade_date = datetime.now()
+        elif action == Action.SEND:
+            trade.value_date = datetime.now()
+        elif action == Action.BOOK:
+            trade.delivery_date = datetime.now()
+        elif action == Action.UPDATE:
+            trade.trade_date = None
+            trade.value_date = None
+            trade.delivery_date = None
+
         trade.save()
 
         # Takes a snapshot of the trade's new state

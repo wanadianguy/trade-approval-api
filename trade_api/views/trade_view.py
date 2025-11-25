@@ -50,46 +50,45 @@ class TradeView(viewsets.GenericViewSet):
             )
 
         action = request.data.get("action")
+
+        if action is None:
+            return Response(
+                {"error": "No 'action' provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if action not in Action._value2member_map_:
+            all_value = [a.value for a in Action]
+            return Response(
+                {"error": f"'action' should be one of these options: {all_value}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         fields = request.data.get("fields")
 
-        if fields is None:
-            if action is None:
-                return Response(
-                    {"error": "'action' or 'fields' should be provided"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        if action == Action.UPDATE and fields is None:
+            return Response(
+                {"error": "No 'fields' provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            if action not in Action._value2member_map_:
-                all_value = [a.value for a in Action]
-                return Response(
-                    {"error": f"'action' should be one of these options: {all_value}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        if action == Action.BOOK and (fields is None or not hasattr(trade, "strike")):
+            return Response(
+                {
+                    "error": f"'strike' must be precised in 'fields' for the action '{Action.BOOK}'",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            try:
-                trade = TradeService.update(trade, action, user_id)
-            except ValidationError as error:
-                return Response(
-                    {
-                        "error": "Someting went wrong when trying to update the trade",
-                        "details": error,
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        try:
+            trade = TradeService.update(trade, action, user_id, updated_fields=fields)
+        except ValidationError as error:
+            return Response(
+                {
+                    "error": "Bad request",
+                    "details": error,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            return Response(TradeSerializer(trade).data)
-        else:
-            try:
-                trade = TradeService.update(
-                    trade, Action.UPDATE, user_id, updated_fields=fields
-                )
-            except ValidationError as error:
-                return Response(
-                    {
-                        "error": "Someting went wrong when trying to update the trade",
-                        "details": error,
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            return Response(TradeSerializer(trade).data)
+        return Response(TradeSerializer(trade).data)

@@ -8,7 +8,15 @@ class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
         fields = "__all__"
-        read_only_fields = ["id", "strike", "state", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "state",
+            "created_at",
+            "updated_at",
+            "trade_date",
+            "value_date",
+            "delivery_date",
+        ]
 
     def validate(self, attrs):
         trade_date = attrs.get("trade_date")
