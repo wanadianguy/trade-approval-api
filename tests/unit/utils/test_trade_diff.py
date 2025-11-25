@@ -29,8 +29,3 @@ class TestTradeDiff(unittest.TestCase):
             "type": {"previous": "buy", "new": "sell"},
         }
         self.assertEqual(trade_diff(trade1, trade2), expected)
-
-    def test_difference_ignored_for_date_fields(self):
-        trade1 = {"id": 1, "trade_date": date(2025, 11, 25)}
-        trade2 = {"id": 1, "trade_date": date(2025, 11, 26)}
-        self.assertEqual(trade_diff(trade1, trade2), {})

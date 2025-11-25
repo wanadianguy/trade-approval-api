@@ -102,6 +102,67 @@ class TradeViewTests(TestCase):
         self.assertEqual(data["currency"], "USD")
         self.assertTrue(data["currency"] in data["underlying"])
 
+    def test_modify_success_approve(self):
+        self.trade.state = TradeState.PENDING_APPROVAL
+        self.trade.save()
+        url = reverse("trade-modify", kwargs={"trade_id": self.trade.id})
+        response = self.client.patch(
+            url,
+            data={
+                "user_id": self.user.id,
+                "action": Action.APPROVE,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["state"], TradeState.APPROVED)
+        self.assertNotEquals(data["trade_date"], None)
+        self.trade.refresh_from_db()
+        self.assertEqual(self.trade.state, TradeState.APPROVED)
+        self.assertNotEquals(self.trade.trade_date, None)
+
+    def test_modify_success_send(self):
+        self.trade.state = TradeState.APPROVED
+        self.trade.save()
+        url = reverse("trade-modify", kwargs={"trade_id": self.trade.id})
+        response = self.client.patch(
+            url,
+            data={
+                "user_id": self.user.id,
+                "action": Action.SEND,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["state"], TradeState.SENT)
+        self.assertNotEquals(data["value_date"], None)
+        self.trade.refresh_from_db()
+        self.assertEqual(self.trade.state, TradeState.SENT)
+        self.assertNotEquals(self.trade.value_date, None)
+
+    def test_modify_success_book(self):
+        self.trade.state = TradeState.SENT
+        self.trade.save()
+        url = reverse("trade-modify", kwargs={"trade_id": self.trade.id})
+        response = self.client.patch(
+            url,
+            data={
+                "user_id": self.user.id,
+                "action": Action.BOOK,
+                "fields": {"strike": 1},
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["state"], TradeState.EXECUTED)
+        self.assertNotEquals(data["delivery_date"], None)
+        self.trade.refresh_from_db()
+        self.assertEqual(self.trade.state, TradeState.EXECUTED)
+        self.assertNotEquals(self.trade.delivery_date, None)
+
     def test_modify_trade_not_found(self):
         url = reverse("trade-modify", kwargs={"trade_id": uuid.uuid4()})
         response = self.client.patch(url, data={"user_id": self.user.id}, format="json")
@@ -126,7 +187,20 @@ class TradeViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_modify_missing_action_and_fields(self):
+    def test_modify_update_without_fields(self):
         url = reverse("trade-modify", kwargs={"trade_id": self.trade.id})
-        response = self.client.patch(url, data={"user_id": self.user.id}, format="json")
+        response = self.client.patch(
+            url, data={"user_id": self.user.id, "action": Action.UPDATE}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_modify_book_strike_missing(self):
+        self.trade.state = TradeState.SENT
+        self.trade.save()
+        url = reverse("trade-modify", kwargs={"trade_id": self.trade.id})
+        response = self.client.patch(
+            url,
+            data={"user_id": self.user.id, "action": Action.BOOK},
+            format="json",
+        )
         self.assertEqual(response.status_code, 400)
