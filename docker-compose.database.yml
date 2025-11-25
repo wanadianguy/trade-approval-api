@@ -1,0 +1,17 @@
+name: trade-approval
+
+services:
+    database:
+        image: bitnami/postgresql:latest
+        container_name: trade-approval-database
+        ports:
+            - 5432:5432
+        environment:
+            - POSTGRESQL_DATABASE=trades
+            - POSTGRESQL_PASSWORD=password
+            - POSTGRESQL_POSTGRES_PASSWORD=password
+            - POSTGRESQL_TIMEZONE=America/Toronto
+            - POSTGRESQL_LOG_TIMEZONE=America/Toronto
+        restart: unless-stopped
+        volumes:
+            - ./data/postgresql:/bitnami/postgresql
