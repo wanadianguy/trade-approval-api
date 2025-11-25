@@ -7,7 +7,12 @@ from ..serializers import TradeLogSerializer
 
 
 class TradeLogView(viewsets.GenericViewSet):
-    @action(detail=False, methods=["get"], url_path=r"(?P<trade_id>[0-9a-fA-F-]{36})")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path=r"(?P<trade_id>[0-9a-fA-F-]{36})",
+        url_name="by-trade",
+    )
     def get(self, request, trade_id=None):
         try:
             trade = Trade.objects.get(id=trade_id)

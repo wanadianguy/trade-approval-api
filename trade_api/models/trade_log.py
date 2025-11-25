@@ -28,8 +28,5 @@ class TradeLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, editable=False)
     diff = models.JSONField(default=dict, editable=False)
 
-    class Meta:
-        ordering = ["timestamp"]
-
     def __str__(self):
         return f"Trade {self.trade.id} {self.action} at {self.timestamp.isoformat()}"

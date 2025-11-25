@@ -22,7 +22,7 @@ class TradeView(viewsets.GenericViewSet):
         new_trade = TradeSerializer(data=request.data)
         if new_trade.is_valid():
             trade = new_trade.save()
-            return Response(TradeSerializer(trade).data)
+            return Response(TradeSerializer(trade).data, status=status.HTTP_201_CREATED)
 
         return Response(
             {"error": "Invalid Trade", "details": new_trade.errors},
