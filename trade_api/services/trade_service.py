@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ..models import Action, TradeLog, TradeState
 from ..utils import trade_diff
@@ -59,11 +58,11 @@ class TradeService:
         trade.state = valid_transitions[starting_state][action]
 
         if action == Action.APPROVE:
-            trade.trade_date = datetime.now()
+            trade.trade_date = timezone.now()
         elif action == Action.SEND:
-            trade.value_date = datetime.now()
+            trade.value_date = timezone.now()
         elif action == Action.BOOK:
-            trade.delivery_date = datetime.now()
+            trade.delivery_date = timezone.now()
         elif action == Action.UPDATE:
             trade.trade_date = None
             trade.value_date = None

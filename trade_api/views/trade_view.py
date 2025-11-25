@@ -72,7 +72,7 @@ class TradeView(viewsets.GenericViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if action == Action.BOOK and (fields is None or not hasattr(trade, "strike")):
+        if action == Action.BOOK and (fields is None or "strike" not in fields):
             return Response(
                 {
                     "error": f"'strike' must be precised in 'fields' for the action '{Action.BOOK}'",
