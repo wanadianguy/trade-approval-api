@@ -39,9 +39,9 @@ class Trade(models.Model):
     currency = models.CharField(max_length=3)
     amount = models.DecimalField(max_digits=20, decimal_places=2)
     underlying = models.JSONField(default=list, validators=[validate_three_char_list])
-    trade_date = models.DateField(null=True, blank=True)
-    value_date = models.DateField(null=True, blank=True)
-    delivery_date = models.DateField(null=True, blank=True)
+    trade_date = models.DateTimeField(null=True, blank=True)
+    value_date = models.DateTimeField(null=True, blank=True)
+    delivery_date = models.DateTimeField(null=True, blank=True)
     strike = models.DecimalField(max_digits=30, decimal_places=6, null=True, blank=True)
     state = models.CharField(
         max_length=20, choices=TradeState.choices, default=TradeState.DRAFT
