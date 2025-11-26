@@ -46,4 +46,4 @@ I mostly used generative AI for debugging purposes.
 My postman requests are in `trade-approval.postman_collection.json` file for convinience.
 
 Thank you for taking the time to review this project!
-![Validus](https://www.validusrm.com/)
+![Validus](https://validusrm.com/wp-content/uploads/2022/02/validus-logo.png)
