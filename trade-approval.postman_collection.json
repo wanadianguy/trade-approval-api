@@ -1,0 +1,140 @@
+{
+	"info": {
+		"_postman_id": "7ca6a346-f5a4-4ba2-96dd-93c6d27a73f4",
+		"name": "trade-approval",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18628735"
+	},
+	"item": [
+		{
+			"name": "getAllTrades",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/trades/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"trades",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createTrade",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"trading_entity\": \"Trading entity\",\n    \"counterparty\": \"Counterpart\",\n    \"style\": \"style\",\n    \"direction\": \"sell\",\n    \"currency\": \"CAD\",\n    \"amount\":10000,\n    \"underlying\": [\n        \"USD\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/trades/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"trades",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "modifyTrade",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": \"26920541-6415-4ce3-85bb-167ea52e4b49\",\n    \"action\": \"update\",\n    \"fields\": {\n        \"test\": \"test\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/trades/756e561a-0d43-4c94-b0bb-7283bfd49eab/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"trades",
+						"756e561a-0d43-4c94-b0bb-7283bfd49eab",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getTradeLogs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/trade_logs/756e561a-0d43-4c94-b0bb-7283bfd49eab/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"trade_logs",
+						"756e561a-0d43-4c94-b0bb-7283bfd49eab",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getDiff",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"trade1\": {\n            \"id\": \"756e561a-0d43-4c94-b0bb-7283bfd49eab\",\n            \"state\": \"draft\",\n            \"style\": \"style\",\n            \"amount\": \"10000.00\",\n            \"currency\": \"CAD\",\n            \"direction\": \"sell\",\n            \"created_at\": \"2025-11-26 12:04:33.574273+00:00\",\n            \"trade_date\": \"None\",\n            \"underlying\": [\"USD\", \"CAD\"],\n            \"updated_at\": \"2025-11-26 12:04:33.574314+00:00\",\n            \"value_date\": \"None\",\n            \"counterparty\": \"Counterpart\",\n            \"delivery_date\": \"None\",\n            \"trading_entity\": \"Trading entity\"\n        },\n    \"trade2\":{\n            \"id\": \"756e561a-0d43-4c94-b0bb-7283bfd49eab\",\n            \"state\": \"draft\",\n            \"style\": \"style\",\n            \"amount\": \"10000.00\",\n            \"currency\": \"CAD\",\n            \"direction\": \"sell\",\n            \"created_at\": \"2025-11-26 12:04:33.574273+00:00\",\n            \"trade_date\": \"None\",\n            \"underlying\": [ \"CAD\"],\n            \"updated_at\": \"2025-11-26 12:04:57.661321+00:00\",\n            \"value_date\": \"None\",\n            \"counterparty\": \"Counterpart\",\n            \"delivery_date\": \"None\",\n            \"trading_entity\": \"Trading entity\"\n        }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/trades/diff/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"trades",
+						"diff",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
