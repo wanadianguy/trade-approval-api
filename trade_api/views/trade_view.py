@@ -1,10 +1,10 @@
-from django.core.exceptions import ValidationError
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models import Action, Trade
+from ..exceptions import BadRequestException, NotFoundException
+from ..models import Trade
 from ..serializers import TradeSerializer
 from ..services import TradeService
 
@@ -60,7 +60,7 @@ class TradeView(viewsets.GenericViewSet):
         ],
     )
     def list(self, request):
-        trades = Trade.objects.all().order_by("-created_at")
+        trades = TradeService.get_all_ordered_by_created_at()
         return Response(TradeSerializer(trades, many=True).data)
 
     @extend_schema(
@@ -106,15 +106,15 @@ class TradeView(viewsets.GenericViewSet):
         ],
     )
     def create(self, request):
-        new_trade = TradeSerializer(data=request.data)
-        if new_trade.is_valid():
-            trade = new_trade.save()
-            return Response(TradeSerializer(trade).data, status=status.HTTP_201_CREATED)
+        trade = TradeSerializer(data=request.data)
+        if not trade.is_valid():
+            return Response(
+                {"error": "Invalid Trade", "details": trade.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return Response(
-            {"error": "Invalid Trade", "details": new_trade.errors},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        trade = TradeService.create_trade(trade)
+        return Response(TradeSerializer(trade).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         summary="Change trade",
@@ -168,59 +168,9 @@ class TradeView(viewsets.GenericViewSet):
         url_path=r"(?P<trade_id>[0-9a-fA-F-]{36})",
     )
     def modify(self, request, trade_id=None):
-        try:
-            trade = Trade.objects.get(id=trade_id)
-        except Trade.DoesNotExist:
-            return Response(
-                {"error": "Trade not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        user_id = request.data.get("user_id")
-        if (user_id) is None:
-            return Response(
-                {"error": "No 'user_id' provided"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
         action = request.data.get("action")
-
-        if action is None:
-            return Response(
-                {"error": "No 'action' provided"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if action not in Action._value2member_map_:
-            all_value = [a.value for a in Action]
-            return Response(
-                {"error": f"'action' should be one of these options: {all_value}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         fields = request.data.get("fields")
-
-        if action == Action.UPDATE and fields is None:
-            return Response(
-                {"error": "No 'fields' provided"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if action == Action.BOOK and (fields is None or "strike" not in fields):
-            return Response(
-                {
-                    "error": f"'strike' must be precised in 'fields' for the action '{Action.BOOK}'",
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            trade = TradeService.update(trade, action, user_id, updated_fields=fields)
-        except ValidationError as error:
-            return Response(
-                {
-                    "error": "Bad request",
-                    "details": error,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user_id = request.data.get("user_id")
+        trade = TradeService.update_trade(trade_id, action, user_id, fields)
 
         return Response(TradeSerializer(trade).data)

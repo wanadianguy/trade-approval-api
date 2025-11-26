@@ -1,10 +1,11 @@
 from drf_spectacular.utils import OpenApiExample, extend_schema
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models import Trade, TradeLog
+from ..models import TradeLog
 from ..serializers import TradeLogSerializer
+from ..services import TradeLogService
 
 
 class TradeLogView(viewsets.GenericViewSet):
@@ -61,12 +62,5 @@ class TradeLogView(viewsets.GenericViewSet):
         url_name="by-trade",
     )
     def get(self, request, trade_id=None):
-        try:
-            trade = Trade.objects.get(id=trade_id)
-        except Trade.DoesNotExist:
-            return Response(
-                {"error": "Trade not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        logs = trade.log.all().order_by("-timestamp")
+        logs = TradeLogService.get_all_by_trade_id_ordered_by_timestamp(trade_id)
         return Response(TradeLogSerializer(logs, many=True).data)

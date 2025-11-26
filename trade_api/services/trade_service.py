@@ -1,7 +1,7 @@
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from ..models import Action, TradeLog, TradeState
+from ..exceptions import BadRequestException, NotFoundException
+from ..models import Action, Trade, TradeLog, TradeState
 from ..utils import trade_diff
 
 # Table of valid actions depending on the trade state
@@ -34,12 +34,50 @@ valid_transitions = {
 
 class TradeService:
     @staticmethod
-    def update(trade, action, user_id, updated_fields=None):
+    def get_all_ordered_by_created_at():
+        return Trade.objects.all().order_by("-created_at")
+
+    @staticmethod
+    def create_trade(trade):
+        return trade.save()
+
+    @staticmethod
+    def update_trade(trade_id, action, user_id, updated_fields):
+        try:
+            trade = Trade.objects.get(id=trade_id)
+        except Trade.DoesNotExist:
+            raise NotFoundException({"error": "Trade not found"})
+
+        if (user_id) is None:
+            raise BadRequestException({"error": "No 'user_id' provided"})
+
+        if action is None:
+            raise BadRequestException({"error": "No 'action' provided"})
+
+        if action not in Action._value2member_map_:
+            all_value = [a.value for a in Action]
+            raise BadRequestException(
+                {"error": f"'action' should be one of these options: {all_value}"}
+            )
+
+        if action == Action.UPDATE and updated_fields is None:
+            raise BadRequestException({"error": "No 'fields' provided"})
+
+        if action == Action.BOOK and (
+            updated_fields is None or "strike" not in updated_fields
+        ):
+            raise BadRequestException(
+                {
+                    "error": f"'strike' must be precised in 'fields' for the action '{Action.BOOK}'"
+                }
+            )
+
         starting_state = trade.state
 
+        # Checks if action is valid for the current trade's state with the table valid_transitions
         if action not in valid_transitions.get(starting_state, {}):
-            raise ValidationError(
-                f"Invalid action '{action}' for state '{starting_state}'"
+            raise BadRequestException(
+                {"error": f"Invalid action '{action}' for state '{starting_state}'"}
             )
 
         # Takes a snapshot of the trade's current state
@@ -54,9 +92,10 @@ class TradeService:
                         continue
                     setattr(trade, field, value)
 
-        # Change the trade's state
+        # Changes the trade's state
         trade.state = valid_transitions[starting_state][action]
 
+        # Logs specific actions
         if action == Action.APPROVE:
             trade.trade_date = timezone.now()
         elif action == Action.SEND:
@@ -75,6 +114,7 @@ class TradeService:
             field.name: getattr(trade, field.name) for field in trade._meta.fields
         }
 
+        # Creates a table of differences bewteen the snapshots
         diff = trade_diff(current_trade, new_trade)
 
         TradeLog.objects.create(
