@@ -5,12 +5,12 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from trade_api.models import Action, Trade, TradeDirection, TradeLog, TradeState
+from trade_api.models import Action, Trade, TradeDirection, TradeLog
 
 User = get_user_model()
 
 
-class TradeViewTests(TestCase):
+class TradeLogViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username="username", password="password")
@@ -26,8 +26,8 @@ class TradeViewTests(TestCase):
             trade=self.trade,
             user_id=uuid.uuid4(),
             action=Action.SUBMIT,
-            state_before=TradeState.DRAFT,
-            state_after=TradeState.PENDING_APPROVAL,
+            previous_state={},
+            new_state={},
         )
 
     def test_get_success(self):

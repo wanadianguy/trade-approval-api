@@ -72,17 +72,15 @@ class TradeService:
                 }
             )
 
-        starting_state = trade.state
-
         # Checks if action is valid for the current trade's state with the table valid_transitions
-        if action not in valid_transitions.get(starting_state, {}):
+        if action not in valid_transitions.get(trade.state, {}):
             raise BadRequestException(
-                {"error": f"Invalid action '{action}' for state '{starting_state}'"}
+                {"error": f"Invalid action '{action}' for state '{trade.state}'"}
             )
 
         # Takes a snapshot of the trade's current state
         current_trade = {
-            field.name: getattr(trade, field.name) for field in trade._meta.fields
+            field.name: str(getattr(trade, field.name)) for field in trade._meta.fields
         }
 
         if updated_fields:
@@ -93,7 +91,7 @@ class TradeService:
                     setattr(trade, field, value)
 
         # Changes the trade's state
-        trade.state = valid_transitions[starting_state][action]
+        trade.state = valid_transitions[trade.state][action]
 
         # Logs specific actions
         if action == Action.APPROVE:
@@ -111,7 +109,7 @@ class TradeService:
 
         # Takes a snapshot of the trade's new state
         new_trade = {
-            field.name: getattr(trade, field.name) for field in trade._meta.fields
+            field.name: str(getattr(trade, field.name)) for field in trade._meta.fields
         }
 
         # Creates a table of differences bewteen the snapshots
@@ -121,8 +119,8 @@ class TradeService:
             trade=trade,
             user_id=user_id,
             action=action,
-            state_before=starting_state,
-            state_after=trade.state,
+            previous_state=current_trade,
+            new_state=new_trade,
             diff=diff,
         )
 

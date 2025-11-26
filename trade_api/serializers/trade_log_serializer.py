@@ -11,8 +11,8 @@ class TradeLogSerializer(serializers.ModelSerializer):
             "trade",
             "user_id",
             "action",
-            "state_before",
-            "state_after",
+            "previous_state",
+            "new_state",
             "timestamp",
             "diff",
         ]
