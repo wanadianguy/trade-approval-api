@@ -18,7 +18,7 @@ class TradeLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="log")
     user_id = models.UUIDField(editable=False)
-    action = models.CharField(max_length=50, editable=False)
+    action = models.CharField(max_length=10, choices=Action.choices, editable=False)
     state_before = models.CharField(
         max_length=50, choices=TradeState.choices, editable=False
     )
