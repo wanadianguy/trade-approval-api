@@ -1,9 +1,10 @@
+import json
+
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..exceptions import BadRequestException, NotFoundException
 from ..models import Trade
 from ..serializers import TradeSerializer
 from ..services import TradeService
@@ -174,3 +175,76 @@ class TradeView(viewsets.GenericViewSet):
         trade = TradeService.update_trade(trade_id, action, user_id, fields)
 
         return Response(TradeSerializer(trade).data)
+
+    @extend_schema(
+        summary="List diiferences between trades",
+        description="Returns a the differences between 2 trades",
+        examples=[
+            OpenApiExample(
+                "Request diff",
+                request_only=True,
+                value={
+                    "trade1": {
+                        "id": "756e561a-0d43-4c94-b0bb-7283bfd49eab",
+                        "state": "draft",
+                        "style": "style",
+                        "amount": "10000.00",
+                        "currency": "CAD",
+                        "direction": "sell",
+                        "created_at": "2025-11-26 12:04:33.574273+00:00",
+                        "trade_date": "None",
+                        "underlying": ["USD", "CAD"],
+                        "updated_at": "2025-11-26 12:04:33.574314+00:00",
+                        "value_date": "None",
+                        "counterparty": "Counterpart",
+                        "delivery_date": "None",
+                        "trading_entity": "Trading entity",
+                    },
+                    "trade2": {
+                        "id": "756e561a-0d43-4c94-b0bb-7283bfd49eab",
+                        "state": "draft",
+                        "style": "style",
+                        "amount": "10000.00",
+                        "currency": "CAD",
+                        "direction": "sell",
+                        "created_at": "2025-11-26 12:04:33.574273+00:00",
+                        "trade_date": "None",
+                        "underlying": ["CAD"],
+                        "updated_at": "2025-11-26 12:04:57.661321+00:00",
+                        "value_date": "None",
+                        "counterparty": "Counterpart",
+                        "delivery_date": "None",
+                        "trading_entity": "Trading entity",
+                    },
+                },
+            ),
+            OpenApiExample(
+                "Success",
+                response_only=True,
+                value={"underlying": {"previous": "['USD', 'CAD']", "new": "['CAD']"}},
+            ),
+        ],
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path=r"diff",
+    )
+    def highlight_changes(self, request):
+        trade1 = request.data.get("trade1")
+        trade1 = TradeSerializer(data=trade1)
+        trade2 = request.data.get("trade2")
+        trade2 = TradeSerializer(data=trade2)
+        if not trade1.is_valid():
+            return Response(
+                {"error": "Invalid Trade 'trade1'", "details": trade1.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not trade2.is_valid():
+            return Response(
+                {"error": "Invalid Trade 'trade2'", "details": trade2.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        diff = TradeService.get_diff_between_trades(trade1, trade2)
+        return Response(diff)

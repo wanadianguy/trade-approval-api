@@ -125,3 +125,8 @@ class TradeService:
         )
 
         return trade
+
+    @staticmethod
+    def get_diff_between_trades(trade1, trade2):
+        diff = trade_diff(trade1.validated_data, trade2.validated_data)
+        return diff
