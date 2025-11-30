@@ -18,6 +18,7 @@
 - Adding the currency automatically to the underlying table of currencies to comply with requirements.
 - Customized exception classes to make resiliency easier to implement.
 - Date check to make sure that Trade Date ≤ Value Date ≤ Delivery Date.
+- Get history into a csv file for clearer view (importable in Excel, Google Sheets, ...)
 
 # API Endpoints
 - GET http://localhost:8000/swagger/
@@ -38,6 +39,7 @@
 - Add endpoint to get trades by state and by id (will be useful for the future frontend).
 - Export logs into specific formats (csv, excel, ...).
 - Create notifications (email?) (would need to have a list of users to notify).
+- Add pagination for the GET methods + caching
 
 # Disclosure of the use of generative AI
 I mostly used generative AI for debugging purposes.

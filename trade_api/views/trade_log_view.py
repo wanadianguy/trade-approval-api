@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -64,3 +65,24 @@ class TradeLogView(viewsets.GenericViewSet):
     def get(self, request, trade_id=None):
         logs = TradeLogService.get_all_by_trade_id_ordered_by_timestamp(trade_id)
         return Response(TradeLogSerializer(logs, many=True).data)
+
+    @extend_schema(
+        summary="Export csv",
+        description="Returns a csv file with the history of the trade",
+        responses="csv file",
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path=r"csv/(?P<trade_id>[0-9a-fA-F-]{36})",
+        url_name="csv",
+    )
+    def export(self, request, trade_id=None):
+        csv_buffer = TradeLogService.export_trade_logs_to_csv(trade_id)
+        csv = csv_buffer.getvalue().encode("utf-8")
+
+        response = HttpResponse(csv, content_type="text/csv")
+        response["Content-Disposition"] = (
+            f'attachment; filename="trade_{trade_id}_logs.csv"'
+        )
+        return response
