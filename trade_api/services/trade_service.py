@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.utils import timezone
 
 from ..exceptions import BadRequestException, NotFoundException
@@ -34,8 +35,11 @@ valid_transitions = {
 
 class TradeService:
     @staticmethod
-    def get_all_ordered_by_created_at():
-        return Trade.objects.all().order_by("-created_at")
+    def get_all_ordered_by_created_at(page: int = 1, per_page: int = 10):
+        trades = Trade.objects.order_by("-created_at")
+        paginator = Paginator(trades, per_page)
+        trade_page = paginator.get_page(page)
+        return trade_page.number, paginator.num_pages, list(trade_page)
 
     @staticmethod
     def create_trade(trade):

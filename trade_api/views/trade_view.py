@@ -61,8 +61,18 @@ class TradeView(viewsets.GenericViewSet):
         ],
     )
     def list(self, request):
-        trades = TradeService.get_all_ordered_by_created_at()
-        return Response(TradeSerializer(trades, many=True).data)
+        page = request.GET.get("page")
+        if page is None:
+            page = 1
+
+        page, total_pages, trades = TradeService.get_all_ordered_by_created_at(page)
+        return Response(
+            {
+                "page": page,
+                "total_pages": total_pages,
+                "trades": TradeSerializer(trades, many=True).data,
+            }
+        )
 
     @extend_schema(
         summary="Create trade",
