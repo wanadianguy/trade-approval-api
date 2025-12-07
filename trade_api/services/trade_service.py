@@ -50,13 +50,18 @@ class TradeService:
         return trade_page.number, paginator.num_pages, list(trade_page)
 
     @staticmethod
+    def get_by_id(id):
+        trade = Trade.objects.get(id=id)
+        return trade
+
+    @staticmethod
     def create_trade(trade):
         return trade.save()
 
     @staticmethod
-    def update_trade(trade_id, action, user_id, updated_fields):
+    def update_trade(id, action, user_id, updated_fields):
         try:
-            trade = Trade.objects.get(id=trade_id)
+            trade = Trade.objects.get(id=id)
         except Trade.DoesNotExist:
             raise NotFoundException({"error": "Trade not found"})
 

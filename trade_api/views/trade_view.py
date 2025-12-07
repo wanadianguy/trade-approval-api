@@ -13,48 +13,52 @@ class TradeView(viewsets.GenericViewSet):
     serializer_class = TradeSerializer
 
     @extend_schema(
-        summary="List all trades",
-        description="Returns a list of all the trades",
+        summary="List trades (can filter by state)",
+        description="Returns a list of all the trades paginated and potentially filtered by state",
         responses=TradeSerializer(many=True),
         examples=[
             OpenApiExample(
                 "Success",
-                value=[
-                    {
-                        "id": "c3cfc74d-99dd-47cb-b39c-e8fc9f2dd36c",
-                        "trading_entity": "Example entity",
-                        "counterparty": "Example counterparty",
-                        "direction": "buy",
-                        "style": "forward",
-                        "currency": "CAD",
-                        "amount": "10000.00",
-                        "underlying": ["CAD"],
-                        "trade_date": None,
-                        "value_date": None,
-                        "delivery_date": None,
-                        "strike": None,
-                        "state": "needs reapproval",
-                        "created_at": "2025-11-25T21:27:21.846508Z",
-                        "updated_at": "2025-11-25T22:24:18.760284Z",
-                    },
-                    {
-                        "id": "fc2d178d-2810-4291-a63e-b5f04201f7d3",
-                        "trading_entity": "Trading entity",
-                        "counterparty": "Counterpart",
-                        "direction": "sell",
-                        "style": "forward",
-                        "currency": "CAD",
-                        "amount": "10000.00",
-                        "underlying": ["CAD"],
-                        "trade_date": "2025-11-25T20:55:15.113853Z",
-                        "value_date": "2025-11-25T20:55:22.416596Z",
-                        "delivery_date": "2025-11-25T21:18:31.189938Z",
-                        "strike": "1.000000",
-                        "state": "executed",
-                        "created_at": "2025-11-25T20:53:36.615607Z",
-                        "updated_at": "2025-11-25T21:18:31.190228Z",
-                    },
-                ],
+                value={
+                    "page": 1,
+                    "total_pages": 1,
+                    "trades": [
+                        {
+                            "id": "c3cfc74d-99dd-47cb-b39c-e8fc9f2dd36c",
+                            "trading_entity": "Example entity",
+                            "counterparty": "Example counterparty",
+                            "direction": "buy",
+                            "style": "forward",
+                            "currency": "CAD",
+                            "amount": "10000.00",
+                            "underlying": ["CAD"],
+                            "trade_date": None,
+                            "value_date": None,
+                            "delivery_date": None,
+                            "strike": None,
+                            "state": "needs reapproval",
+                            "created_at": "2025-11-25T21:27:21.846508Z",
+                            "updated_at": "2025-11-25T22:24:18.760284Z",
+                        },
+                        {
+                            "id": "fc2d178d-2810-4291-a63e-b5f04201f7d3",
+                            "trading_entity": "Trading entity",
+                            "counterparty": "Counterpart",
+                            "direction": "sell",
+                            "style": "forward",
+                            "currency": "CAD",
+                            "amount": "10000.00",
+                            "underlying": ["CAD"],
+                            "trade_date": "2025-11-25T20:55:15.113853Z",
+                            "value_date": "2025-11-25T20:55:22.416596Z",
+                            "delivery_date": "2025-11-25T21:18:31.189938Z",
+                            "strike": "1.000000",
+                            "state": "executed",
+                            "created_at": "2025-11-25T20:53:36.615607Z",
+                            "updated_at": "2025-11-25T21:18:31.190228Z",
+                        },
+                    ],
+                },
             ),
         ],
     )
@@ -75,6 +79,37 @@ class TradeView(viewsets.GenericViewSet):
                 "trades": TradeSerializer(trades, many=True).data,
             }
         )
+
+    @extend_schema(
+        summary="Get trade by id",
+        description="Returns a list of all the trades",
+        responses=TradeSerializer(many=True),
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "id": "c3cfc74d-99dd-47cb-b39c-e8fc9f2dd36c",
+                    "trading_entity": "Example entity",
+                    "counterparty": "Example counterparty",
+                    "direction": "buy",
+                    "style": "forward",
+                    "currency": "CAD",
+                    "amount": "10000.00",
+                    "underlying": ["CAD"],
+                    "trade_date": None,
+                    "value_date": None,
+                    "delivery_date": None,
+                    "strike": None,
+                    "state": "needs reapproval",
+                    "created_at": "2025-11-25T21:27:21.846508Z",
+                    "updated_at": "2025-11-25T22:24:18.760284Z",
+                },
+            ),
+        ],
+    )
+    def get(self, request, id):
+        trade = TradeService.get_by_id(id)
+        return Response(TradeSerializer(trade).data)
 
     @extend_schema(
         summary="Create trade",
@@ -178,13 +213,13 @@ class TradeView(viewsets.GenericViewSet):
     @action(
         detail=False,
         methods=["patch"],
-        url_path=r"(?P<trade_id>[0-9a-fA-F-]{36})",
+        url_path=r"(?P<id>[0-9a-fA-F-]{36})",
     )
-    def modify(self, request, trade_id=None):
+    def modify(self, request, id=None):
         action = request.data.get("action")
         fields = request.data.get("fields")
         user_id = request.data.get("user_id")
-        trade = TradeService.update_trade(trade_id, action, user_id, fields)
+        trade = TradeService.update_trade(id, action, user_id, fields)
 
         return Response(TradeSerializer(trade).data)
 
