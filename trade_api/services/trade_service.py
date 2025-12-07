@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.core.paginator import Paginator
 from django.utils import timezone
 
@@ -35,8 +37,14 @@ valid_transitions = {
 
 class TradeService:
     @staticmethod
-    def get_all_ordered_by_created_at(page: int = 1, per_page: int = 10):
-        trades = Trade.objects.order_by("-created_at")
+    def get_all_ordered_by_created_at(
+        page: int = 1, per_page: int = 10, state: Union[TradeState, None] = None
+    ):
+        if state is None:
+            trades = Trade.objects.order_by("-created_at")
+        else:
+            trades = Trade.objects.filter(state=state).order_by("-created_at")
+
         paginator = Paginator(trades, per_page)
         trade_page = paginator.get_page(page)
         return trade_page.number, paginator.num_pages, list(trade_page)

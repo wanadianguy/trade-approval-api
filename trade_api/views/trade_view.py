@@ -1,5 +1,3 @@
-import json
-
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -65,7 +63,11 @@ class TradeView(viewsets.GenericViewSet):
         if page is None:
             page = 1
 
-        page, total_pages, trades = TradeService.get_all_ordered_by_created_at(page)
+        state = request.GET.get("state")
+
+        page, total_pages, trades = TradeService.get_all_ordered_by_created_at(
+            page=page, state=state
+        )
         return Response(
             {
                 "page": page,
